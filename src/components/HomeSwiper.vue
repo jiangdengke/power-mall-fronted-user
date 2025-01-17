@@ -1,10 +1,35 @@
 <template>
   <div class="swiper-section">
     <div class="category-sidebar">
-      <div class="category-item" v-for="(item, index) in categories" :key="index">
-        <i :class="item.icon"></i>
+      <div class="category-item" 
+           v-for="item in categories" 
+           :key="item.id"
+           @mouseenter="handleCategoryHover(item)"
+           @mouseleave="handleCategoryLeave">
+        <i :class="item.icon || 'el-icon-goods'"></i>
         <span>{{ item.name }}</span>
-        <i class="el-icon-arrow-right"></i>
+        <i class="el-icon-arrow-right" v-if="item.children && item.children.length"></i>
+        
+        <!-- 二级菜单 -->
+        <div class="sub-categories" v-show="activeCategory === item">
+          <div class="sub-category" 
+               v-for="subItem in item.children" 
+               :key="subItem.id"
+               @mouseenter="handleSubCategoryHover(subItem)"
+               @mouseleave="handleSubCategoryLeave">
+            <span>{{ subItem.name }}</span>
+            <i class="el-icon-arrow-right" v-if="subItem.children && subItem.children.length"></i>
+            
+            <!-- 三级菜单 -->
+            <div class="third-categories" v-show="activeSubCategory === subItem">
+              <div class="third-category" 
+                   v-for="thirdItem in subItem.children" 
+                   :key="thirdItem.id">
+                <span>{{ thirdItem.name }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="swiper-container">
@@ -39,39 +64,68 @@
 </template>
 
 <script>
+import { getCarouselList } from '@/api/cms'
+import { getCategoryTree } from '@/api/pms'
+
 export default {
   name: 'HomeSwiper',
   data() {
     return {
-      swiperList: [],
-      categories: [
-        { name: '手机数码', icon: 'el-icon-mobile-phone' },
-        { name: '电脑办公', icon: 'el-icon-notebook-2' },
-        { name: '家用电器', icon: 'el-icon-refrigerator' },
-        { name: '服装鞋包', icon: 'el-icon-shopping-bag-1' },
-        { name: '美妆护肤', icon: 'el-icon-cherry' },
-        { name: '食品生鲜', icon: 'el-icon-food' },
-        { name: '图书音像', icon: 'el-icon-reading' },
-        { name: '运动户外', icon: 'el-icon-basketball' }
-      ]
+      swiperList: [],      // 轮播图数据
+      categories: [],      // 分类数据
+      activeCategory: null,    // 当前激活的一级分类
+      activeSubCategory: null  // 当前激活的二级分类
     }
   },
   created() {
     this.getSwiperData()
+    this.getCategoryData()
   },
   methods: {
     async getSwiperData() {
       try {
-        const response = await this.$http.get('/swiper')
-        if (response.data.code === 200) {
-          this.swiperList = response.data.data
+        const res = await getCarouselList()
+        if (res.code === 200) {
+          this.swiperList = res.data.sort((a, b) => a.sort - b.sort)
         } else {
-          this.$message.error('获取轮播图数据失败')
+          this.$message.error(res.message || '获取轮播图数据失败')
         }
       } catch (error) {
-        console.error('获取轮播图数据出错:', error)
         this.$message.error('获取轮播图数据出错')
       }
+    },
+    async getCategoryData() {
+      try {
+        const res = await getCategoryTree()
+        if (res.code === 200) {
+          this.categories = res.data
+        } else {
+          this.$message.error(res.message || '获取分类数据失败')
+        }
+      } catch (error) {
+        this.$message.error('获取分类数据出错')
+      }
+    },
+    // 处理一级分类的悬浮
+    handleCategoryHover(category) {
+      if (category.children && category.children.length) {
+        this.activeCategory = category
+      }
+    },
+    // 处理一级分类的离开
+    handleCategoryLeave() {
+      this.activeCategory = null
+      this.activeSubCategory = null
+    },
+    // 处理二级分类的悬浮
+    handleSubCategoryHover(subCategory) {
+      if (subCategory.children && subCategory.children.length) {
+        this.activeSubCategory = subCategory
+      }
+    },
+    // 处理二级分类的离开
+    handleSubCategoryLeave() {
+      this.activeSubCategory = null
     }
   }
 }
@@ -90,9 +144,12 @@ export default {
   background: #fff;
   border-radius: 4px;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 100;
 }
 
 .category-item {
+  position: relative;
   padding: 12px 20px;
   display: flex;
   align-items: center;
@@ -208,5 +265,53 @@ export default {
 
 :deep(.el-carousel__indicator--active .el-carousel__button) {
   background-color: #409EFF;
+}
+
+/* 添加多级菜单样式 */
+.sub-categories {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  width: 200px;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.sub-category {
+  position: relative;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.sub-category:hover {
+  background: #f5f7fa;
+  color: #409EFF;
+}
+
+.third-categories {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  width: 200px;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  z-index: 11;
+}
+
+.third-category {
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.third-category:hover {
+  background: #f5f7fa;
+  color: #409EFF;
 }
 </style> 
