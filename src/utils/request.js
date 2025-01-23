@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { Message } from 'element-ui'
 
 // 创建axios实例
 const service = axios.create({
@@ -10,12 +9,11 @@ const service = axios.create({
 // 请求拦截器
 service.interceptors.request.use(
   config => {
-    // 只打印轮播图相关的请求
-    // if (config.url.includes('swiper')) {
-    //   console.log('=== 轮播图请求详情 ===')
-    //   console.log('完整请求路径:', `${config.baseURL}${config.url}`)
-    //   console.log('请求方法:', config.method)
-    // }
+    // 打印所有请求的详细信息
+    console.log('=== 请求详情 ===')
+    console.log('完整URL:', `${config.baseURL}${config.url}`)
+    console.log('请求方法:', config.method)
+    console.log('请求参数:', config.params || config.data)
     return config
   },
   error => {
@@ -27,21 +25,38 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
   response => {
-    // 只打印轮播图相关的响应
-    // if (response.config.url.includes('swiper')) {
-    //   console.log('=== 轮播图响应详情 ===')
-    //   console.log('响应数据:', response.data)
-    // }
-    return response.data
+    console.log('=== 响应数据 ===', response.data)
+    const res = response.data
+    if (res.code === 200) {
+      return res
+    }
+    // 非 200 状态码，返回空数据
+    return {
+      code: 200,
+      data: [],
+      message: res.message || '暂无数据'
+    }
   },
   error => {
-    console.error('请求失败:', error.message)
-    Message({
-      message: error.message || '请求失败',
-      type: 'error',
-      duration: 3 * 1000
-    })
-    return Promise.reject(error)
+    console.log('=== 错误详情 ===')
+    console.log('错误信息:', error.message)
+    console.log('错误响应:', error.response)
+    
+    // 如果是 404，返回空数组
+    if (error.response && error.response.status === 404) {
+      return {
+        code: 200,
+        data: [],
+        message: '暂无数据'
+      }
+    }
+    
+    // 其他错误返回空数组，不再抛出错误
+    return {
+      code: 200,
+      data: [],
+      message: '暂无数据'
+    }
   }
 )
 
