@@ -21,22 +21,13 @@
       
       <!-- 商品列表 -->
       <div v-else class="goods-grid">
-        <el-card v-for="item in goodsList" 
-                :key="item.id" 
-                class="goods-item"
-                shadow="hover">
-          <img :src="item.img" :alt="item.name" class="goods-img">
-          <div class="goods-info">
-            <h3 class="goods-name">{{ item.name }}</h3>
-            <div class="goods-detail">
-              <div class="goods-price">¥{{ (item.price / 100).toFixed(2) }}</div>
-              <div class="goods-sales">销量: {{ item.sales }}</div>
-            </div>
-            <div class="goods-stock">库存: {{ item.totalStock }}</div>
-            <div v-if="item.status === 0" class="goods-status off">已下架</div>
-            <div v-else class="goods-status on">在售</div>
-          </div>
-        </el-card>
+        <GoodsCard
+          v-for="item in goodsList"
+          :key="item.id"
+          :goods="item"
+          @click="handleGoodsClick"
+          @buy="handleGoodsBuy"
+        />
       </div>
       
       <!-- 分页 -->
@@ -56,9 +47,13 @@
 
 <script>
 import { getGoodsList } from '@/api/pms'
+import GoodsCard from '@/components/GoodsCard.vue'
 
 export default {
   name: 'GoodsList',
+  components: {
+    GoodsCard
+  },
   data() {
     return {
       goodsList: [],
@@ -79,8 +74,10 @@ export default {
       this.loading = true
       try {
         const res = await getGoodsList(this.categoryId)
-        this.goodsList = res.data
-        this.total = res.data.length
+        if (res.code === 200) {
+          this.goodsList = res.data
+          this.total = res.data.length
+        }
       } finally {
         this.loading = false
       }
@@ -88,6 +85,13 @@ export default {
     handlePageChange(page) {
       this.currentPage = page
       this.fetchGoodsList()
+    },
+    handleGoodsClick(goods) {
+      this.$router.push(`/goods/detail/${goods.id}`)
+    },
+    handleGoodsBuy(goods) {
+      // TODO: 实现购买逻辑
+      console.log('购买商品:', goods)
     }
   }
 }
@@ -95,17 +99,29 @@ export default {
 
 <style scoped>
 .goods-list {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
 }
 
 .page-header {
   margin-bottom: 20px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
 }
 
 .page-header h2 {
-  margin-bottom: 10px;
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+.goods-content {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  padding: 20px;
 }
 
 .goods-grid {
@@ -113,79 +129,6 @@ export default {
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 20px;
   margin-bottom: 20px;
-}
-
-.goods-item {
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.goods-item:hover {
-  transform: translateY(-5px);
-}
-
-.goods-img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-}
-
-.goods-info {
-  padding: 10px;
-}
-
-.goods-name {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.4;
-  height: 40px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-
-.goods-detail {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 10px;
-}
-
-.goods-price {
-  color: #f56c6c;
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.goods-sales {
-  color: #909399;
-  font-size: 12px;
-}
-
-.goods-stock {
-  color: #909399;
-  font-size: 12px;
-  margin-top: 5px;
-}
-
-.goods-status {
-  display: inline-block;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 12px;
-  margin-top: 5px;
-}
-
-.goods-status.on {
-  background-color: #67c23a;
-  color: white;
-}
-
-.goods-status.off {
-  background-color: #909399;
-  color: white;
 }
 
 .loading, .empty {
@@ -196,5 +139,7 @@ export default {
 .pagination {
   text-align: center;
   margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
 }
 </style> 

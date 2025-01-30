@@ -22,7 +22,15 @@ export function getGoodsList(categoryId) {
 // 获取所有商品列表
 export function getAllGoods() {
   return request({
-    url: '/mall/api/goods/list',
+    url: '/api/pms/goods/all',
+    method: 'get'
+  })
+}
+
+// 获取商品详情
+export function getGoodsDetail(id) {
+  return request({
+    url: `/api/pms/goods/${id}`,
     method: 'get'
   })
 } 

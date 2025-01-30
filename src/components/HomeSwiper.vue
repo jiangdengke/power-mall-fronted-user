@@ -83,22 +83,34 @@
       </div>
 
       <!-- 商品展示区域 -->
-      <div class="goods-grid-container">
-        <el-card v-for="item in goodsList" 
-                :key="item.id" 
-                class="goods-card"
-                shadow="hover"
-                @click="handleGoodsClick(item)">
-          <img :src="item.img" :alt="item.name" class="goods-img">
-          <div class="goods-info">
-            <h3 class="goods-name">{{ item.name }}</h3>
-            <div class="goods-price">¥{{ (item.price / 100).toFixed(2) }}</div>
-            <div class="goods-bottom">
-              <span class="goods-sales">已售 {{ item.sales }}</span>
-              <el-button size="small" type="danger" round>立即购买</el-button>
-            </div>
-          </div>
-        </el-card>
+      <div class="goods-section" style="margin-top: 30px;">
+        <div class="section-header">
+          <h2>热门商品</h2>
+          <el-button type="text" @click="$router.push('/goods/all')">
+            查看更多 <i class="el-icon-arrow-right"></i>
+          </el-button>
+        </div>
+        
+        <!-- 加载状态 -->
+        <div v-if="loading" class="loading-state">
+          <el-skeleton :rows="5" animated />
+        </div>
+        
+        <!-- 空状态 -->
+        <div v-else-if="!goodsList || goodsList.length === 0" class="empty-state">
+          <el-empty description="暂无商品数据"></el-empty>
+        </div>
+        
+        <!-- 商品网格 -->
+        <div v-else class="goods-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; margin-top: 20px;">
+          <GoodsCard
+            v-for="item in goodsList"
+            :key="item.id"
+            :goods="item"
+            @click="handleGoodsClick"
+            @buy="handleGoodsBuy"
+          />
+        </div>
       </div>
 
     </div>
@@ -124,16 +136,21 @@
 <script>
 import { getCarouselList } from '@/api/cms'
 import { getCategoryTree, getAllGoods } from '@/api/pms'
+import GoodsCard from '@/components/GoodsCard.vue'
 
 export default {
   name: 'HomeSwiper',
+  components: {
+    GoodsCard
+  },
   data() {
     return {
       swiperList: [],      // 轮播图数据
       categories: [],      // 分类数据
       activeCategory: null,    // 当前激活的一级分类
       activeSubCategory: null,  // 当前激活的二级分类
-      goodsList: []        // 商品列表数据
+      goodsList: [],        // 商品列表数据
+      loading: false        // 加载状态
     }
   },
   created() {
@@ -194,29 +211,43 @@ export default {
       // 跳转到商品列表页
       this.$router.push(`/goods/${category.id}`)
     },
+    // 获取商品标签
+    getGoodsTag(item) {
+      if (item.status === 0) return '已下架'
+      if (item.sales > 100) return '热销'
+      if (item.isNew) return '新品'
+      return ''
+    },
     // 获取商品数据
     async getGoodsData() {
-      console.log('开始获取商品数据...')
+      console.log('=== 开始获取商品数据 ===')
+      this.loading = true
       try {
         const res = await getAllGoods()
         console.log('商品数据响应:', res)
-        if (res.code === 200) {
-          // 按销量排序，取前12个
+        
+        if (res && res.data) {
           this.goodsList = res.data
-            .sort((a, b) => b.sales - a.sales)
-            .slice(0, 12)
-          console.log('处理后的商品数据:', this.goodsList)
+          console.log('商品列表:', this.goodsList)
         } else {
-          console.error('获取商品数据失败:', res.message)
+          console.error('获取商品数据失败:', res)
+          this.goodsList = []
         }
       } catch (error) {
         console.error('获取商品数据出错:', error)
+        this.goodsList = []
+      } finally {
+        this.loading = false
       }
     },
     // 处理商品点击
     handleGoodsClick(goods) {
-      // TODO: 跳转到商品详情页
-      console.log('商品点击:', goods)
+      this.$router.push(`/goods/detail/${goods.id}`)
+    },
+    // 处理立即购买
+    handleGoodsBuy(goods) {
+      // TODO: 实现购买逻辑
+      console.log('购买商品:', goods)
     }
   }
 }
@@ -532,82 +563,52 @@ export default {
   transition: all 0.3s;
 }
 
-/* 商品网格区域 */
-.goods-grid-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 20px;
-  padding: 20px;
+/* 商品展示区域 */
+.goods-section {
   background: rgba(255, 255, 255, 0.9);
   border-radius: 12px;
+  padding: 20px;
   box-shadow: 0 4px 20px rgba(255, 77, 79, 0.1);
+  margin-top: 30px;
 }
 
-.goods-card {
-  border: none;
-  transition: all 0.3s;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.goods-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 24px rgba(255, 77, 79, 0.2) !important;
-}
-
-.goods-img {
-  width: 100%;
-  height: 220px;
-  object-fit: cover;
-  border-radius: 8px 8px 0 0;
-  transition: all 0.3s;
-}
-
-.goods-card:hover .goods-img {
-  transform: scale(1.05);
-}
-
-.goods-info {
-  padding: 12px;
-}
-
-.goods-name {
-  margin: 0 0 8px 0;
-  font-size: 14px;
-  line-height: 1.4;
-  height: 40px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  color: #333;
-}
-
-.goods-price {
-  color: #ff4d4f;
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 8px;
-}
-
-.goods-bottom {
+.section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 20px;
+  padding: 0 10px;
 }
 
-.goods-sales {
-  color: #909399;
-  font-size: 12px;
+.section-header h2 {
+  font-size: 24px;
+  color: #333;
+  margin: 0;
+  position: relative;
+  padding-left: 15px;
 }
 
-/* 删除旧的商品样式 */
-.goods-section,
-.section-header,
-.goods-grid,
-.goods-item,
-.goods-detail {
-  display: none;
+.section-header h2::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 20px;
+  background: #ff4d4f;
+  border-radius: 2px;
+}
+
+.loading-state, .empty-state {
+  padding: 40px;
+  text-align: center;
+}
+
+.goods-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
 }
 </style> 
