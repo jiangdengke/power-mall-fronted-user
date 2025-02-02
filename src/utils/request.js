@@ -1,4 +1,5 @@
 import axios from 'axios'
+import store from '@/store'
 
 // 创建axios实例
 const service = axios.create({
@@ -9,6 +10,12 @@ const service = axios.create({
 // 请求拦截器
 service.interceptors.request.use(
   config => {
+    // 添加token到请求头
+    const token = store.getters['user/token']
+    if (token) {
+      config.headers['power-mall-token'] = token
+    }
+
     // 打印所有请求的详细信息
     console.log('=== 请求详情 ===')
     console.log('完整URL:', `${config.baseURL}${config.url}`)
