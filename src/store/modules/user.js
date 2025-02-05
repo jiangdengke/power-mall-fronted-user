@@ -1,4 +1,4 @@
-import { login } from '@/api/ums'
+import { login, loginByMail } from '@/api/ums'
 
 const state = {
   token: localStorage.getItem('power-mall-token'),
@@ -31,7 +31,7 @@ const mutations = {
 }
 
 const actions = {
-  // 用户登录
+  // 用户名密码登录
   async login({ commit }, loginForm) {
     try {
       const res = await login(loginForm)
@@ -43,6 +43,22 @@ const actions = {
       return false
     } catch (error) {
       console.error('登录失败:', error)
+      return false
+    }
+  },
+
+  // 邮箱验证码登录
+  async loginByMail({ commit }, mailForm) {
+    try {
+      const res = await loginByMail(mailForm)
+      console.log('邮箱登录响应:', res)
+      if (res.code === 200 && res.data) {
+        commit('SET_USER_DATA', res.data)
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('邮箱登录失败:', error)
       return false
     }
   },

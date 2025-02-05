@@ -33,4 +33,24 @@ export function getGoodsDetail(id) {
     url: `/api/pms/goods/${id}`,
     method: 'get'
   })
+}
+
+// 添加商品到购物车
+export function addToCart(skuId, count) {
+  return request({
+    url: '/api/pms/cart/add',
+    method: 'post',
+    params: {
+      skuId,
+      count
+    }
+  })
+}
+
+// 获取购物车列表
+export function getCartList() {
+  return request({
+    url: '/api/pms/cart',
+    method: 'get'
+  })
 } 

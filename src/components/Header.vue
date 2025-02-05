@@ -64,10 +64,14 @@ export default {
     handleCommand(command) {
       switch (command) {
         case 'orders':
-          this.$router.push('/orders')
+          if (this.$route.path !== '/orders') {
+            this.$router.push('/orders')
+          }
           break
         case 'cart':
-          this.$router.push('/cart')
+          if (this.$route.path !== '/cart') {
+            this.$router.push('/cart')
+          }
           break
         case 'logout':
           this.handleLogout()

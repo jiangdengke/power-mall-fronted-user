@@ -84,7 +84,18 @@
           <div class="sku-name">规格: {{ currentSku.name }}</div>
         </div>
 
-        <!-- 购买按钮 -->
+        <!-- 在商品规格后面添加数量选择 -->
+        <div class="goods-count" v-if="currentSku">
+          <div class="count-label">数量</div>
+          <el-input-number 
+            v-model="buyCount"
+            :min="1"
+            :max="currentSku.stock"
+            @change="handleCountChange">
+          </el-input-number>
+        </div>
+
+        <!-- 修改购买按钮部分 -->
         <div class="action-buttons">
           <el-button 
             type="danger" 
@@ -96,7 +107,8 @@
           <el-button 
             type="primary" 
             size="large" 
-            :disabled="!canBuy" 
+            :disabled="!canBuy"
+            :loading="addCartLoading" 
             @click="handleAddToCart">
             加入购物车
           </el-button>
@@ -116,7 +128,7 @@
 </template>
 
 <script>
-import { getGoodsDetail } from '@/api/pms'
+import { getGoodsDetail, addToCart } from '@/api/pms'
 
 export default {
   name: 'GoodsDetail',
@@ -127,7 +139,9 @@ export default {
       currentImg: '',
       activeTab: 'detail',
       selectedSpecs: {},  // 已选择的规格 { specId: specValueId }
-      currentSku: null    // 当前选中的SKU
+      currentSku: null,   // 当前选中的SKU
+      buyCount: 1,        // 购买数量
+      addCartLoading: false  // 添加购物车loading状态
     }
   },
   computed: {
@@ -282,14 +296,31 @@ export default {
       // TODO: 实现购买逻辑
       this.$message.success('购买功能开发中...')
     },
-    handleAddToCart() {
+    // 添加到购物车
+    async handleAddToCart() {
       if (!this.canBuy) return
       if (!this.currentSku) {
         this.$message.warning('请选择商品规格')
         return
       }
-      // TODO: 实现加入购物车逻辑
-      this.$message.success('加入购物车功能开发中...')
+
+      try {
+        this.addCartLoading = true
+        const res = await addToCart(this.currentSku.id, this.buyCount)
+        if (res.code === 200) {
+          this.$message({
+            message: '成功加入购物车',
+            type: 'success'
+          })
+        } else {
+          this.$message.error(res.message || '加入购物车失败')
+        }
+      } catch (error) {
+        console.error('加入购物车失败:', error)
+        this.$message.error('加入购物车失败，请重试')
+      } finally {
+        this.addCartLoading = false
+      }
     },
     handleSpecSelect(specId, specValueId) {
       // 如果规格值不可选，直接返回
@@ -308,6 +339,10 @@ export default {
       const availableValues = this.availableSpecValues[specId]
       if (!availableValues) return true // 如果还没有选择任何规格，所有值都可选
       return availableValues.has(specValueId)
+    },
+    // 修改购买数量
+    handleCountChange(value) {
+      this.buyCount = value
     }
   }
 }
@@ -565,5 +600,22 @@ export default {
   background-color: #f5f5f5;
   border-color: #dcdfe6;
   color: #999;
+}
+
+.goods-count {
+  margin: 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.count-label {
+  font-size: 14px;
+  color: #999;
+  width: 60px;
+}
+
+:deep(.el-input-number) {
+  width: 150px;
 }
 </style> 

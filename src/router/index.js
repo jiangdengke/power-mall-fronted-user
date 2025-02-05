@@ -32,6 +32,12 @@ const routes = [
     path: '/register',
     name: 'UserRegister',
     component: () => import('@/views/user/Register.vue')
+  },
+  {
+    path: '/cart',
+    name: 'Cart',
+    component: () => import('@/views/user/Cart.vue'),
+    meta: { requiresAuth: true }
   }
   // 以下路由等待组件创建后再启用
   // {

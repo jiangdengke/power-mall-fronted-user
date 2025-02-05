@@ -20,7 +20,7 @@ export function getEmailCode(email) {
   })
 }
 
-// 用户登录
+// 用户名密码登录
 export function login(data) {
   return request({
     url: '/api/ums/loginByUsername',
@@ -28,6 +28,18 @@ export function login(data) {
     params: {
       username: data.username,
       password: data.password
+    }
+  })
+}
+
+// 邮箱验证码登录
+export function loginByMail(data) {
+  return request({
+    url: '/api/ums/loginByMail',
+    method: 'post',
+    params: {
+      mail: data.mail,
+      code: data.code
     }
   })
 } 
