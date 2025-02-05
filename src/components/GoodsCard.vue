@@ -42,10 +42,11 @@ export default {
   },
   methods: {
     handleClick() {
-      this.$router.push(`/goods/detail/${this.goods.id}`)
+      this.$emit('click', this.goods)
     },
-    handleBuy() {
-      this.$router.push(`/goods/detail/${this.goods.id}`)
+    handleBuy(event) {
+      event.stopPropagation()
+      this.$emit('buy', this.goods)
     }
   }
 }

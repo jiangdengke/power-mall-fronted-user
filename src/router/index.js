@@ -1,6 +1,8 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import HomePage from '../views/Home.vue'
+import store from '@/store'
+import { Message } from 'element-ui'
 
 Vue.use(VueRouter)
 
@@ -18,7 +20,8 @@ const routes = [
   {
     path: '/goods/detail/:id',
     name: 'GoodsDetail',
-    component: () => import('@/views/goods/Detail.vue')
+    component: () => import('@/views/goods/Detail.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/login',
@@ -30,10 +33,46 @@ const routes = [
     name: 'UserRegister',
     component: () => import('@/views/user/Register.vue')
   }
+  // 以下路由等待组件创建后再启用
+  // {
+  //   path: '/orders',
+  //   name: 'Orders',
+  //   component: () => import('@/views/user/Orders.vue'),
+  //   meta: { requiresAuth: true }
+  // },
+  // {
+  //   path: '/cart',
+  //   name: 'Cart',
+  //   component: () => import('@/views/user/Cart.vue'),
+  //   meta: { requiresAuth: true }
+  // }
 ]
 
 const router = new VueRouter({
   routes
+})
+
+// 全局前置守卫
+router.beforeEach((to, from, next) => {
+  // 检查该路由是否需要登录
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    // 检查是否已登录
+    if (!store.getters['user/isLogin']) {
+      Message({
+        message: '请先登录',
+        type: 'warning'
+      })
+      // 保存要跳转的地址，登录成功后跳回来
+      next({
+        path: '/login',
+        query: { redirect: to.fullPath }
+      })
+    } else {
+      next()
+    }
+  } else {
+    next()
+  }
 })
 
 export default router

@@ -19,8 +19,13 @@
         <template v-else>
           <el-dropdown trigger="click" @command="handleCommand">
             <span class="user-info">
-              <i class="el-icon-user"></i>
-              <span>个人中心</span>
+              <template v-if="userInfo.avatar">
+                <el-avatar :size="32" :src="userInfo.avatar"></el-avatar>
+              </template>
+              <template v-else>
+                <el-avatar :size="32" icon="el-icon-user"></el-avatar>
+              </template>
+              <span class="username">{{ userInfo.username }}</span>
               <i class="el-icon-arrow-down"></i>
             </span>
             <el-dropdown-menu slot="dropdown">
@@ -53,7 +58,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('user', ['isLogin'])
+    ...mapGetters('user', ['isLogin', 'userInfo'])
   },
   methods: {
     handleCommand(command) {
@@ -120,13 +125,20 @@ export default {
 .user-info {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
   cursor: pointer;
   color: #333;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.3s;
 }
 
 .user-info:hover {
-  color: #ff4d4f;
+  background: #f5f5f5;
+}
+
+.username {
+  font-size: 14px;
 }
 
 .cart-badge {

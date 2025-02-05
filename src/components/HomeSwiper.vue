@@ -242,12 +242,35 @@ export default {
     },
     // 处理商品点击
     handleGoodsClick(goods) {
+      // 检查登录状态
+      if (!this.$store.getters['user/isLogin']) {
+        this.$message({
+          message: '请先登录',
+          type: 'warning'
+        })
+        this.$router.push({
+          path: '/login',
+          query: { redirect: `/goods/detail/${goods.id}` }
+        })
+        return
+      }
       this.$router.push(`/goods/detail/${goods.id}`)
     },
     // 处理立即购买
     handleGoodsBuy(goods) {
-      // TODO: 实现购买逻辑
-      console.log('购买商品:', goods)
+      // 检查登录状态
+      if (!this.$store.getters['user/isLogin']) {
+        this.$message({
+          message: '请先登录',
+          type: 'warning'
+        })
+        this.$router.push({
+          path: '/login',
+          query: { redirect: `/goods/detail/${goods.id}` }
+        })
+        return
+      }
+      this.$router.push(`/goods/detail/${goods.id}`)
     }
   }
 }

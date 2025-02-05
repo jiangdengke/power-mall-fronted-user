@@ -54,7 +54,9 @@ export default {
         
         if (success) {
           this.$message.success('登录成功')
-          this.$router.push('/')
+          // 获取重定向地址
+          const redirect = this.$route.query.redirect || '/'
+          this.$router.push(redirect)
         } else {
           this.$message.error('用户名或密码错误')
         }
