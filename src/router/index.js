@@ -38,6 +38,18 @@ const routes = [
     name: 'Cart',
     component: () => import('@/views/user/Cart.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/order/confirm',
+    name: 'OrderConfirm',
+    component: () => import('@/views/order/Confirm.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/orders',
+    name: 'OrderList',
+    component: () => import('@/views/order/List.vue'),
+    meta: { requiresAuth: true }
   }
   // 以下路由等待组件创建后再启用
   // {

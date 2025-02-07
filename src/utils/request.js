@@ -20,6 +20,7 @@ service.interceptors.request.use(
     console.log('=== 请求详情 ===')
     console.log('完整URL:', `${config.baseURL}${config.url}`)
     console.log('请求方法:', config.method)
+    console.log('请求头:', config.headers)
     console.log('请求参数:', config.params || config.data)
     return config
   },
@@ -48,6 +49,16 @@ service.interceptors.response.use(
     console.log('=== 错误详情 ===')
     console.log('错误信息:', error.message)
     console.log('错误响应:', error.response)
+    console.log('错误配置:', error.config)
+    
+    // 如果是跨域错误
+    if (error.message.includes('Network Error') || !error.response) {
+      console.log('疑似跨域错误，尝试重新发送请求...')
+      // 重试请求，移除一些可能导致跨域的头
+      const retryConfig = { ...error.config }
+      delete retryConfig.headers['Access-Control-Allow-Origin']
+      return service(retryConfig)
+    }
     
     // 如果是 404，返回空数组
     if (error.response && error.response.status === 404) {

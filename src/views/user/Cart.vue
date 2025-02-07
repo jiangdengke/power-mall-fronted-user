@@ -277,8 +277,8 @@ export default {
         this.$message.warning('请选择要结算的商品')
         return
       }
-      // TODO: 跳转到结算页面
-      this.$message.info('结算功能开发中...')
+      // 跳转到订单确认页面
+      this.$router.push('/order/confirm')
     }
   }
 }
