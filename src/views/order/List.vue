@@ -200,10 +200,12 @@ export default {
           type: 'warning'
         })
         
-        const res = await cancelOrder(order.id)
+        const res = await cancelOrder(order.orderSn)
         if (res.code === 200) {
           this.$message.success('订单取消成功')
           this.fetchOrderList()
+        } else {
+          this.$message.error(res.message || '取消订单失败')
         }
       } catch (error) {
         if (error !== 'cancel') {

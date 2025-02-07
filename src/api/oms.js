@@ -38,12 +38,12 @@ export function submitOrder(data) {
 }
 
 // 取消订单
-export function cancelOrder(orderId) {
+export function cancelOrder(orderSn) {
   return request({
     url: '/api/oms/order/cancel',
     method: 'put',
     params: {
-      orderId
+      orderSn  // 确保传递的是字符串类型
     }
   })
 } 
