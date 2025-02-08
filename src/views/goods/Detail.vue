@@ -287,14 +287,21 @@ export default {
         )
       })
     },
-    handleBuy() {
+    // 立即购买
+    async handleBuy() {
       if (!this.canBuy) return
       if (!this.currentSku) {
         this.$message.warning('请选择商品规格')
         return
       }
-      // TODO: 实现购买逻辑
-      this.$message.success('购买功能开发中...')
+      // 跳转到订单确认页，带上商品信息
+      this.$router.push({
+        path: '/order/confirm',
+        query: {
+          skuId: this.currentSku.id,
+          count: this.buyCount
+        }
+      })
     },
     // 添加到购物车
     async handleAddToCart() {

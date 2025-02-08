@@ -138,6 +138,11 @@ export default {
     }
   },
   created() {
+    // 从路由参数获取状态
+    const { status } = this.$route.query
+    if (status) {
+      this.activeStatus = status
+    }
     this.fetchOrderList()
   },
   methods: {
@@ -216,7 +221,8 @@ export default {
     },
     // 立即付款
     handlePay(order) {
-      this.$router.push(`/pay?orderId=${order.id}`)
+      this.$message.info(`订单 ${order.orderSn} 支付功能开发中，敬请期待...`)
+      // this.$router.push(`/pay?orderId=${order.id}`)
     },
     // 评价
     handleComment(order) {

@@ -29,11 +29,11 @@ export function confirmCartOrder() {
 }
 
 // 提交订单
-export function submitOrder(data) {
+export function submitOrder(orderForm) {
   return request({
     url: '/api/oms/order/submit',
     method: 'post',
-    data
+    data: orderForm
   })
 }
 

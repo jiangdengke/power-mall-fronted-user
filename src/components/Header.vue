@@ -11,12 +11,31 @@
       <div class="user-area">
         <!-- 未登录状态 -->
         <template v-if="!isLogin">
-          <el-button type="text" @click="$router.push('/login')">登录</el-button>
-          <el-button type="text" @click="$router.push('/register')">注册</el-button>
+          <el-button type="text" @click="$router.push('/login')">
+            <i class="el-icon-user"></i> 登录
+          </el-button>
+          <el-button type="text" @click="$router.push('/register')">
+            <i class="el-icon-plus"></i> 注册
+          </el-button>
         </template>
 
         <!-- 已登录状态 -->
         <template v-else>
+          <!-- 购物车按钮 -->
+          <div class="nav-item" @click="$router.push('/cart')">
+            <el-badge :value="cartCount" :hidden="!cartCount">
+              <i class="el-icon-shopping-cart-2"></i>
+            </el-badge>
+            <span>购物车</span>
+          </div>
+
+          <!-- 订单按钮 -->
+          <div class="nav-item" @click="$router.push('/orders')">
+            <i class="el-icon-document"></i>
+            <span>我的订单</span>
+          </div>
+
+          <!-- 用户信息下拉菜单 -->
           <el-dropdown trigger="click" @command="handleCommand">
             <span class="user-info">
               <template v-if="userInfo.avatar">
@@ -29,14 +48,7 @@
               <i class="el-icon-arrow-down"></i>
             </span>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item command="orders">
-                <i class="el-icon-document"></i> 我的订单
-              </el-dropdown-item>
-              <el-dropdown-item command="cart">
-                <i class="el-icon-shopping-cart-2"></i> 购物车
-                <el-badge :value="cartCount" class="cart-badge" v-if="cartCount > 0"/>
-              </el-dropdown-item>
-              <el-dropdown-item divided command="logout">
+              <el-dropdown-item command="logout">
                 <i class="el-icon-switch-button"></i> 退出登录
               </el-dropdown-item>
             </el-dropdown-menu>
@@ -62,20 +74,8 @@ export default {
   },
   methods: {
     handleCommand(command) {
-      switch (command) {
-        case 'orders':
-          if (this.$route.path !== '/orders') {
-            this.$router.push('/orders')
-          }
-          break
-        case 'cart':
-          if (this.$route.path !== '/cart') {
-            this.$router.push('/cart')
-          }
-          break
-        case 'logout':
-          this.handleLogout()
-          break
+      if (command === 'logout') {
+        this.handleLogout()
       }
     },
     handleLogout() {
@@ -114,6 +114,11 @@ export default {
   color: #ff4d4f;
   font-size: 20px;
   font-weight: bold;
+  transition: transform 0.3s;
+}
+
+.logo:hover {
+  transform: scale(1.05);
 }
 
 .logo i {
@@ -123,7 +128,31 @@ export default {
 .user-area {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: all 0.3s;
+  color: #666;
+}
+
+.nav-item:hover {
+  background: #fff0f0;
+  color: #ff4d4f;
+}
+
+.nav-item i {
+  font-size: 20px;
+}
+
+.nav-item span {
+  font-size: 14px;
 }
 
 .user-info {
@@ -131,7 +160,6 @@ export default {
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  color: #333;
   padding: 4px 8px;
   border-radius: 4px;
   transition: all 0.3s;
@@ -143,20 +171,34 @@ export default {
 
 .username {
   font-size: 14px;
-}
-
-.cart-badge {
-  margin-left: 5px;
+  color: #333;
 }
 
 :deep(.el-badge__content) {
   background-color: #ff4d4f;
 }
 
+:deep(.el-button--text) {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  color: #666;
+  transition: all 0.3s;
+}
+
+:deep(.el-button--text:hover) {
+  color: #ff4d4f;
+}
+
+:deep(.el-button--text i) {
+  font-size: 16px;
+}
+
 :deep(.el-dropdown-menu__item) {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
 }
 
 :deep(.el-dropdown-menu__item i) {

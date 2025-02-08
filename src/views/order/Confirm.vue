@@ -19,33 +19,16 @@
       <div class="section address-section">
         <h3 class="section-title">收货地址</h3>
         <div class="address-list">
-          <div v-if="!orderInfo.address" class="empty-address">
-            <el-button type="primary" size="small" @click="handleAddAddress">
-              添加收货地址
-            </el-button>
-          </div>
-          <div v-else class="address-item">
-            <div class="address-info">
-              <p>
-                <span class="name">{{ orderInfo.address.name }}</span>
-                <span class="phone">{{ orderInfo.address.phone }}</span>
-              </p>
-              <p class="address-detail">
-                {{ orderInfo.address.province }}
-                {{ orderInfo.address.city }}
-                {{ orderInfo.address.district }}
-                {{ orderInfo.address.detail }}
-              </p>
-            </div>
-            <el-button type="text" @click="handleChangeAddress">更换地址</el-button>
-          </div>
+          <el-button type="dashed" class="add-address" icon="el-icon-plus">
+            添加收货地址
+          </el-button>
         </div>
       </div>
 
       <!-- 商品清单 -->
       <div class="section goods-section">
         <h3 class="section-title">商品清单</h3>
-        <el-table :data="orderInfo.items" style="width: 100%">
+        <el-table :data="orderInfo.orderItems" style="width: 100%">
           <el-table-column label="商品信息" min-width="400">
             <template slot-scope="scope">
               <div class="goods-info">
@@ -71,21 +54,23 @@
 
           <el-table-column label="小计" width="120">
             <template slot-scope="scope">
-              <span class="subtotal">¥{{ ((scope.row.price * scope.row.count) / 100).toFixed(2) }}</span>
+              <span class="subtotal">¥{{ (scope.row.totalPrice / 100).toFixed(2) }}</span>
             </template>
           </el-table-column>
         </el-table>
       </div>
 
-      <!-- 订单备注 -->
-      <div class="section remark-section">
-        <h3 class="section-title">订单备注</h3>
-        <el-input
-          v-model="orderForm.remark"
-          type="textarea"
-          :rows="2"
-          placeholder="请输入订单备注（选填）">
-        </el-input>
+      <!-- 支付方式 -->
+      <div class="section payment-section">
+        <h3 class="section-title">支付方式</h3>
+        <el-radio-group v-model="payType">
+          <el-radio :label="1">
+            <i class="el-icon-money"></i> 微信支付
+          </el-radio>
+          <el-radio :label="2">
+            <i class="el-icon-wallet"></i> 支付宝支付
+          </el-radio>
+        </el-radio-group>
       </div>
 
       <!-- 订单金额 -->
@@ -93,10 +78,6 @@
         <div class="amount-item">
           <span>商品总额：</span>
           <span class="price">¥{{ (orderInfo.totalAmount / 100).toFixed(2) }}</span>
-        </div>
-        <div class="amount-item">
-          <span>运费：</span>
-          <span class="price">¥{{ (orderInfo.freightAmount / 100).toFixed(2) }}</span>
         </div>
         <div class="amount-item total">
           <span>应付总额：</span>
@@ -114,7 +95,6 @@
           type="primary" 
           size="medium" 
           :loading="submitting"
-          :disabled="!orderInfo.address"
           @click="handleSubmit">
           提交订单
         </el-button>
@@ -132,17 +112,13 @@ export default {
     return {
       loading: false,
       submitting: false,
+      payType: 1, // 默认微信支付
       orderInfo: {
-        address: null,
-        items: [],
+        orderItems: [],
         totalAmount: 0,
-        freightAmount: 0,
         payAmount: 0
       },
-      orderForm: {
-        addressId: '',
-        remark: ''
-      }
+      orderForm: {}
     }
   },
   created() {
@@ -165,9 +141,6 @@ export default {
         
         if (res.code === 200) {
           this.orderInfo = res.data
-          if (this.orderInfo.address) {
-            this.orderForm.addressId = this.orderInfo.address.id
-          }
         }
       } catch (error) {
         console.error('获取订单确认信息失败:', error)
@@ -176,30 +149,41 @@ export default {
         this.loading = false
       }
     },
-    // 添加收货地址
-    handleAddAddress() {
-      // TODO: 实现添加地址功能
-      this.$message.info('添加地址功能开发中...')
-    },
-    // 更换收货地址
-    handleChangeAddress() {
-      // TODO: 实现更换地址功能
-      this.$message.info('更换地址功能开发中...')
-    },
     // 提交订单
     async handleSubmit() {
-      if (!this.orderForm.addressId) {
-        this.$message.warning('请选择收货地址')
+      if (!this.payType) {
+        this.$message.warning('请选择支付方式')
         return
       }
 
       try {
         this.submitting = true
-        const res = await submitOrder(this.orderForm)
+        // 构造订单提交表单
+        const orderForm = {
+          orderSn: this.orderInfo.orderSn,
+          remark: '',  // 订单备注
+          payType: this.payType,  // 使用选择的支付方式
+          totalAmount: this.orderInfo.totalAmount,
+          payAmount: this.orderInfo.payAmount,
+          orderItems: this.orderInfo.orderItems.map(item => ({
+            skuId: item.skuId,
+            price: item.price,
+            count: item.count
+          }))
+        }
+        
+        console.log('提交的订单数据：', orderForm)
+        const res = await submitOrder(orderForm)
+        
         if (res.code === 200) {
           this.$message.success('订单提交成功')
-          // TODO: 跳转到支付页面
-          this.$router.push('/pay')
+          // 跳转到待付款订单页面
+          this.$router.push({
+            path: '/orders',
+            query: { status: '1' }  // 1表示待付款状态
+          })
+        } else {
+          this.$message.error(res.message || '提交订单失败')
         }
       } catch (error) {
         console.error('提交订单失败:', error)
@@ -257,39 +241,6 @@ export default {
   margin: 0 0 20px 0;
   font-size: 16px;
   color: #333;
-}
-
-/* 地址样式 */
-.empty-address {
-  text-align: center;
-  padding: 20px;
-}
-
-.address-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px;
-  border: 1px solid #f0f0f0;
-  border-radius: 4px;
-}
-
-.address-info p {
-  margin: 0;
-}
-
-.address-info .name {
-  font-weight: bold;
-  margin-right: 10px;
-}
-
-.address-info .phone {
-  color: #666;
-}
-
-.address-detail {
-  color: #666;
-  margin-top: 5px;
 }
 
 /* 商品信息样式 */
@@ -361,5 +312,59 @@ export default {
 .submit-info .price {
   font-size: 20px;
   margin-left: 5px;
+}
+
+.payment-section {
+  padding: 20px;
+}
+
+.payment-section .el-radio {
+  margin-right: 30px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.payment-section .el-radio i {
+  margin-right: 5px;
+  font-size: 18px;
+}
+
+.el-radio.is-checked i {
+  color: #409EFF;
+}
+
+/* 收货地址样式 */
+.address-section {
+  padding: 20px;
+}
+
+.address-list {
+  min-height: 120px;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.add-address {
+  width: 240px;
+  height: 120px;
+  border: 1px dashed #d9d9d9;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.add-address:hover {
+  border-color: #ff4d4f;
+  color: #ff4d4f;
+}
+
+.add-address i {
+  font-size: 24px;
+  margin-bottom: 8px;
 }
 </style> 
