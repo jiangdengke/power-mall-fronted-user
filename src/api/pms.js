@@ -53,4 +53,15 @@ export function getCartList() {
     url: '/api/pms/cart',
     method: 'get'
   })
+}
+
+// 搜索商品
+export function searchGoods(params) {
+  return request({
+    url: '/api/pms/goods/search',
+    method: 'get',
+    params: {
+      name: params.name
+    }
+  })
 } 

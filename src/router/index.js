@@ -13,6 +13,11 @@ const routes = [
     component: HomePage
   },
   {
+    path: '/goods/all',
+    name: 'AllGoods',
+    component: () => import('@/views/goods/List.vue')
+  },
+  {
     path: '/goods/:categoryId',
     name: 'GoodsList',
     component: () => import('@/views/goods/List.vue')
@@ -50,6 +55,11 @@ const routes = [
     name: 'OrderList',
     component: () => import('@/views/order/List.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/goods/search',
+    name: 'GoodsSearch',
+    component: () => import('@/views/goods/Search.vue')
   }
   // 以下路由等待组件创建后再启用
   // {

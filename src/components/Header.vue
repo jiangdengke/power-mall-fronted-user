@@ -1,10 +1,32 @@
 <template>
   <div class="header">
     <div class="header-content">
-      <!-- 左侧 logo -->
-      <div class="logo" @click="$router.push('/')">
-        <i class="el-icon-shopping-bag-1"></i>
-        <span>商城</span>
+      <!-- 左侧 logo 和 GitHub 链接 -->
+      <div class="left-section">
+        <div class="logo" @click="$router.push('/')">
+          <svg viewBox="0 0 24 24" width="28" height="28" class="logo-icon">
+            <path fill="currentColor" d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 3c0 .55.45 1 1 1h1l3.6 7.59-1.35 2.44C4.52 15.37 5.48 17 7 17h11c.55 0 1-.45 1-1s-.45-1-1-1H7l1.1-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A.996.996 0 0020.01 4H5.21l-.67-1.43a.993.993 0 00-.9-.57H2c-.55 0-1 .45-1 1zm16 15c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+          </svg>
+          <span>商城</span>
+        </div>
+        <a href="https://github.com/jiangdengke/POWERMALL" 
+           target="_blank" 
+           class="github-link">
+          <svg height="24" viewBox="0 0 16 16" width="24" class="github-icon">
+            <path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+          </svg>
+          <span>GitHub</span>
+        </a>
+        <!-- 添加搜索框 -->
+        <div class="search-box">
+          <el-input
+            v-model="searchKeyword"
+            placeholder="搜索商品"
+            clearable
+            @keyup.enter.native="handleSearch">
+            <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
+          </el-input>
+        </div>
       </div>
 
       <!-- 右侧用户区域 -->
@@ -66,7 +88,8 @@ export default {
   name: 'AppHeader',
   data() {
     return {
-      cartCount: 0
+      cartCount: 0,
+      searchKeyword: ''
     }
   },
   computed: {
@@ -82,6 +105,27 @@ export default {
       this.$store.dispatch('user/logout')
       this.$message.success('退出成功')
       this.$router.push('/login')
+    },
+    handleSearch() {
+      if (!this.searchKeyword.trim()) {
+        return
+      }
+
+      // 更新路由参数
+      this.$router.push({
+        path: '/goods/search',
+        query: { 
+          keyword: this.searchKeyword.trim(),
+          _t: Date.now() // 添加时间戳确保路由参数变化
+        }
+      }).catch(err => {
+        // 忽略重复导航错误
+        if (err.name !== 'NavigationDuplicated') {
+          throw err
+        }
+      })
+      
+      this.searchKeyword = ''
     }
   }
 }
@@ -106,6 +150,12 @@ export default {
   padding: 0 20px;
 }
 
+.left-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
 .logo {
   display: flex;
   align-items: center;
@@ -123,6 +173,31 @@ export default {
 
 .logo i {
   font-size: 24px;
+}
+
+.github-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #24292f;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  transition: all 0.3s;
+  font-size: 14px;
+}
+
+.github-link:hover {
+  background: #f6f8fa;
+  color: #0969da;
+}
+
+.github-icon {
+  transition: transform 0.3s;
+}
+
+.github-link:hover .github-icon {
+  transform: scale(1.1);
 }
 
 .user-area {
@@ -203,5 +278,40 @@ export default {
 
 :deep(.el-dropdown-menu__item i) {
   font-size: 16px;
+}
+
+.logo-icon {
+  color: currentColor;
+  transition: transform 0.3s;
+}
+
+.logo:hover .logo-icon {
+  transform: scale(1.1);
+}
+
+.search-box {
+  width: 300px;
+  margin-left: 20px;
+}
+
+.search-box :deep(.el-input__inner) {
+  border-radius: 20px 0 0 20px;
+  border-right: none;
+}
+
+.search-box :deep(.el-input-group__append) {
+  border-radius: 0 20px 20px 0;
+  background: #ff4d4f;
+  border-color: #ff4d4f;
+  color: #fff;
+}
+
+.search-box :deep(.el-input-group__append:hover) {
+  background: #ff7875;
+  border-color: #ff7875;
+}
+
+.search-box :deep(.el-input-group__append .el-icon-search) {
+  font-weight: bold;
 }
 </style> 

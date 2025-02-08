@@ -46,7 +46,7 @@
 </template>
 
 <script>
-import { getGoodsList } from '@/api/pms'
+import { getGoodsList, searchGoods, getAllGoods } from '@/api/pms'
 import GoodsCard from '@/components/GoodsCard.vue'
 
 export default {
@@ -73,10 +73,30 @@ export default {
     async fetchGoodsList() {
       this.loading = true
       try {
-        const res = await getGoodsList(this.categoryId)
+        let res
+        if (this.$route.path === '/goods/all') {
+          // 如果是查看全部商品
+          res = await getAllGoods()
+        } else if (this.categoryId === 'search') {
+          // 如果是搜索页面
+          res = await searchGoods({
+            name: this.$route.query.keyword,
+            categoryId: undefined,
+            gtePrice: undefined,
+            ltePrice: undefined,
+            orderBy: '',
+            direction: '',
+            current: this.currentPage,
+            size: this.pageSize
+          })
+        } else {
+          // 如果是分类页面
+          res = await getGoodsList(this.categoryId)
+        }
+        
         if (res.code === 200) {
-          this.goodsList = res.data
-          this.total = res.data.length
+          this.goodsList = res.data.records || res.data
+          this.total = res.data.total || res.data.length
         }
       } finally {
         this.loading = false

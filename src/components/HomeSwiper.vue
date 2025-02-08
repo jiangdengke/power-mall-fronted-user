@@ -102,7 +102,7 @@
         </div>
         
         <!-- 商品网格 -->
-        <div v-else class="goods-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; margin-top: 20px;">
+        <div v-else class="goods-grid">
           <GoodsCard
             v-for="item in goodsList"
             :key="item.id"
@@ -226,9 +226,12 @@ export default {
         const res = await getAllGoods()
         console.log('商品数据响应:', res)
         
-        if (res && res.data) {
-          this.goodsList = res.data
-          console.log('商品列表:', this.goodsList)
+        if (res && res.code === 200) {
+          console.log('商品数据结构:', JSON.stringify(res.data, null, 2))
+          // 直接使用 res.data，因为可能不是分页格式
+          this.goodsList = res.data || []
+          console.log('处理后的商品列表:', this.goodsList)
+          console.log('商品列表长度:', this.goodsList.length)
         } else {
           console.error('获取商品数据失败:', res)
           this.goodsList = []

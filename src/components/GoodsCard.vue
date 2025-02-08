@@ -40,6 +40,9 @@ export default {
       })
     }
   },
+  created() {
+    console.log('GoodsCard received goods:', this.goods)
+  },
   methods: {
     handleClick() {
       this.$emit('click', this.goods)
