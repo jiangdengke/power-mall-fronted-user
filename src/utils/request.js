@@ -3,7 +3,7 @@ import store from '@/store'
 
 // 创建axios实例
 const service = axios.create({
-  baseURL: 'http://localhost:8888',
+   baseURL: 'http://localhost:8888',
   timeout: 15000
 })
 
@@ -52,13 +52,13 @@ service.interceptors.response.use(
     console.log('错误配置:', error.config)
     
     // 如果是跨域错误
-    if (error.message.includes('Network Error') || !error.response) {
-      console.log('疑似跨域错误，尝试重新发送请求...')
-      // 重试请求，移除一些可能导致跨域的头
-      const retryConfig = { ...error.config }
-      delete retryConfig.headers['Access-Control-Allow-Origin']
-      return service(retryConfig)
-    }
+    // if (error.message.includes('Network Error') || !error.response) {
+    //   console.log('疑似跨域错误，尝试重新发送请求...')
+    //   // 重试请求，移除一些可能导致跨域的头
+    //   const retryConfig = { ...error.config }
+    //   delete retryConfig.headers['Access-Control-Allow-Origin']
+    //   return service(retryConfig)
+    // }
     
     // 如果是 404，返回空数组
     if (error.response && error.response.status === 404) {

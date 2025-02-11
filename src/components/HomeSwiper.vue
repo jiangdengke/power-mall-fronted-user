@@ -153,10 +153,15 @@ export default {
       loading: false        // 加载状态
     }
   },
-  created() {
-    this.getSwiperData()
-    this.getCategoryData()
-    this.getGoodsData()
+  mounted() {
+    this.loading = true
+    Promise.all([
+      this.getSwiperData(),
+      this.getCategoryData(),
+      this.getGoodsData()
+    ]).finally(() => {
+      this.loading = false
+    })
   },
   methods: {
     async getSwiperData() {
@@ -164,11 +169,9 @@ export default {
         const res = await getCarouselList()
         if (res.code === 200) {
           this.swiperList = res.data.sort((a, b) => a.sort - b.sort)
-        } else {
-          this.$message.error(res.message || '获取轮播图数据失败')
         }
       } catch (error) {
-        this.$message.error('获取轮播图数据出错')
+        console.error('获取轮播图失败:', error)
       }
     },
     async getCategoryData() {
@@ -176,11 +179,19 @@ export default {
         const res = await getCategoryTree()
         if (res.code === 200) {
           this.categories = res.data
-        } else {
-          this.$message.error(res.message || '获取分类数据失败')
         }
       } catch (error) {
-        this.$message.error('获取分类数据出错')
+        console.error('获取分类失败:', error)
+      }
+    },
+    async getGoodsData() {
+      try {
+        const res = await getAllGoods()
+        if (res && res.code === 200) {
+          this.goodsList = res.data || []
+        }
+      } catch (error) {
+        console.error('获取商品失败:', error)
       }
     },
     // 处理一级分类的悬浮
@@ -217,31 +228,6 @@ export default {
       if (item.sales > 100) return '热销'
       if (item.isNew) return '新品'
       return ''
-    },
-    // 获取商品数据
-    async getGoodsData() {
-      console.log('=== 开始获取商品数据 ===')
-      this.loading = true
-      try {
-        const res = await getAllGoods()
-        console.log('商品数据响应:', res)
-        
-        if (res && res.code === 200) {
-          console.log('商品数据结构:', JSON.stringify(res.data, null, 2))
-          // 直接使用 res.data，因为可能不是分页格式
-          this.goodsList = res.data || []
-          console.log('处理后的商品列表:', this.goodsList)
-          console.log('商品列表长度:', this.goodsList.length)
-        } else {
-          console.error('获取商品数据失败:', res)
-          this.goodsList = []
-        }
-      } catch (error) {
-        console.error('获取商品数据出错:', error)
-        this.goodsList = []
-      } finally {
-        this.loading = false
-      }
     },
     // 处理商品点击
     handleGoodsClick(goods) {
