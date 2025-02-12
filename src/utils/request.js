@@ -3,8 +3,8 @@ import store from '@/store'
 
 // 创建axios实例
 const service = axios.create({
-   baseURL: 'http://localhost:8888',
-  timeout: 15000
+    baseURL: 'http://localhost:8888',  // 修改为相对路径，使用代理
+    timeout: 15000
 })
 
 // 请求拦截器
